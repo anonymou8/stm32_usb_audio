@@ -122,15 +122,15 @@
 
 
     /*  Interrupt enable/disable (one at a time) */
-        #define INTERRUPT_ENABLE(n)         NVIC->ISER[n/32] = 1 << n
-        #define INTERRUPT_DISABLE(n)        NVIC->ICER[n/32] = 1 << n
+        #define INTERRUPT_ENABLE(n)         NVIC->ISER[n/32] = 1 << (n%32)
+        #define INTERRUPT_DISABLE(n)        NVIC->ICER[n/32] = 1 << (n%32)
         #define INTERRUPT_PRIORITY(n, p)    NVIC->IP[n] = (p) << 4
 
 
-    /*  Startup code and reset vector definition
+    /*  Startup code and reset vector initialization
         (NMI, HardFault and other vectors must be defined by user) */
 
-        int main() asm("_start") __attribute__((naked));
+        int main() asm("_start") __attribute__((noreturn));
 
         #ifndef NO_INIT
 
@@ -148,7 +148,7 @@
                 extern uint32_t
                     _sivt;
 
-                uint8_t
+                register uint8_t
                     *src = &_sidata,
                     *dst = &_sdata;
 

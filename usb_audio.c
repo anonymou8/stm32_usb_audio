@@ -441,6 +441,7 @@
                 }
             #else
                 ep0_set_stat_tx(STALL);
+                return;
             #endif
         }
 
