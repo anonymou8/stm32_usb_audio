@@ -46,7 +46,7 @@
 
     .align 1
 
-    config_descriptor:
+    config_descriptor:              /* Configuration Descriptor */
         .byte   CD_SZ               @; bLength
         .byte   DESC_TYPE_CONFIG    @; bDescriptorType
         .2byte  CD_TOTAL_SZ         @; wTotalLength
@@ -58,7 +58,7 @@
     CD_SZ = . - config_descriptor
 
         /* First interface (Audio Class, no endpoints) */
-        interface_descriptor_ac:
+        interface_descriptor_ac:        /* Standard AC Interface Descriptor */
             .byte   IDAC_SZ             @; bLength
             .byte   DESC_TYPE_INTERFACE @; bDescriptorType
             .byte   0                   @; bInterfaceNumber         : Zero based
@@ -70,22 +70,22 @@
             .byte   0                   @; iInterface
         IDAC_SZ = . - interface_descriptor_ac
 
-            csi_descriptor_ac_hdr:
+            csi_descriptor_ac_hdr:          /* AC Interface Header Descriptor */
                 .byte   CSH_SZ              @; bLength
                 .byte   0x24                @; bDescriptorType      = CS_INTERFACE
                 .byte   0x01                @; bDescriptorSubtype   = HEADER
-                .2byte  0x0100              @; bcdADC
+                .2byte  0x0100              @; bcdADC: revision of class specification 1.00
                 .2byte  CS_TOTAL_SZ         @; wTotalLength
                 .byte   1                   @; bInCollection        = One streaming interface:
                 .byte   1                   @; baInterfaceNr        = [1]
             CSH_SZ = . - csi_descriptor_ac_hdr
 
-                csi_descriptor_ac_it:
+                csi_descriptor_ac_it:           /* Input Terminal Descriptor */
                     .byte   CSIT_SZ             @; bLength
                     .byte   0x24                @; bDescriptorType      = CS_INTERFACE
                     .byte   0x02                @; bDescriptorSubtype   = INPUT_TERMINAL
                     .byte   (1)                 @; bTerminalID
-                    .2byte  0x0200              @; wTerminalType        = Undefined (Mic - 0x0201)
+                    .2byte  0x0201              @; wTerminalType        Mic = 0x0201 or Undefined = 0x0200
                     .byte   0                   @; bAssocTerminal
                     .byte   1                   @; bNrChannels
                     .2byte  0x00                @; wChannelConfig
@@ -105,7 +105,7 @@
             @;      .byte   0                   @; iFeature
             @;  CSFU_SZ = . - csi_descriptor_ac_fu
 
-                csi_descriptor_ac_ot:
+                csi_descriptor_ac_ot:           /* Output Terminal Descriptor */
                     .byte   CSOT_SZ             @; bLength
                     .byte   0x24                @; bDescriptorType      = CS_INTERFACE
                     .byte   0x03                @; bDescriptorSubtype   = OUTPUT_TERMINAL
@@ -119,19 +119,31 @@
             CS_TOTAL_SZ = . - csi_descriptor_ac_hdr
 
         /* Second interface (Audio Streaming, 1 endpoint) */
-        interface_descriptor_as:
-            .byte   IDAS_SZ             @; bLength
+        interface_descriptor_as_alt:    /* Standard AS interface descriptor (Alt. Set. 0) */
+            .byte   IDAS_ALT_SZ         @; bLength
             .byte   DESC_TYPE_INTERFACE @; bDescriptorType
             .byte   1                   @; bInterfaceNumber         : Zero based
             .byte   0                   @; bAlternateSetting
+            .byte   0                   @; bNumEndpoints            = No endpoints interface altsetting
+            .byte   0x01                @; bInterfaceClass          = AUDIO
+            .byte   0x02                @; bInterfaceSubClass       = AUDIO_STREAMING
+            .byte   0                   @; bInterfaceProtocol       Not used. Must be set to 0.
+            .byte   0                   @; iInterface
+        IDAS_ALT_SZ = . - interface_descriptor_as_alt
+      
+        interface_descriptor_as:        /* Standard AS Interface Descriptor */
+            .byte   IDAS_SZ             @; bLength
+            .byte   DESC_TYPE_INTERFACE @; bDescriptorType
+            .byte   1                   @; bInterfaceNumber         : Zero based
+            .byte   1                   @; bAlternateSetting
             .byte   1                   @; bNumEndpoints
             .byte   0x01                @; bInterfaceClass          = AUDIO
             .byte   0x02                @; bInterfaceSubClass       = AUDIO_STREAMING
-            .byte   0                   @; bInterfaceProtocol       = No protocol
+            .byte   0                   @; bInterfaceProtocol       Not used. Must be set to 0.
             .byte   0                   @; iInterface
         IDAS_SZ = . - interface_descriptor_as
 
-            csi_descriptor_as:
+            csi_descriptor_as:              /* Class-specific AS General Interface Descriptor */
                 .byte   CSAS_SZ             @; bLength
                 .byte   0x24                @; bDescriptorType      = CS_INTERFACE
                 .byte   0x01                @; bDescriptorSubtype   = GENERAL
@@ -140,7 +152,7 @@
                 .2byte  0x0001              @; wFormatTag           = PCM
             CSAS_SZ = . - csi_descriptor_as
 
-            csi_descriptor_as_fmt:
+            csi_descriptor_as_fmt:          /* Type I Format Type Descriptor */
                 .byte   CSASF_SZ            @; bLength
                 .byte   0x24                @; bDescriptorType      = CS_INTERFACE
                 .byte   0x02                @; bDescriptorSubtype   = FORMAT_TYPE
@@ -149,10 +161,12 @@
                 .byte   2                   @; bSubFrameSize        : Bytes
                 .byte   16                  @; bBitResolution       : MSBs
                 .byte   1                   @; bSamFreqType         = One supperted frequency
-                .4byte  FREQ                @; tSamFreq
+                .byte (FREQ) & 0xFF         @;
+                .byte (FREQ >> 8) & 0xFF    @;
+                .byte (FREQ >> 16) & 0xFF   @; tSamFreq
             CSASF_SZ = . - csi_descriptor_as_fmt
 
-                endpoint_descriptor:
+                endpoint_descriptor:            /* Standard AS Isochronous Audio Data Endpoint Descriptor */
                     .byte   EPD_SZ              @; bLength
                     .byte   DESC_TYPE_ENDPOINT  @; bDescriptorType
                     .byte   1 | 0x80            @; bEndpointAddress     = IN 1
@@ -163,7 +177,7 @@
                     .byte   0                   @; bSynchAddress        : Not used
                 EPD_SZ = . - endpoint_descriptor
 
-                cse_descriptor:
+                cse_descriptor:                 /* Class-Specific AS Isochronous Audio Data Endpoint Descriptor */
                     .byte   CSED_SZ             @; bLength
                     .byte   0x25                @; bDescriptorType      = CS_ENDPOINT
                     .byte   0x01                @; bDescriptorSubtype   = GENERAL
@@ -196,7 +210,7 @@
 /*************************************************************************************/
 /* String descriptors */
 
-    .align 1
+.align 1
 
     string_descriptor:
         .word  sd0_Lang

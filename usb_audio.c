@@ -408,14 +408,14 @@
                     get_descriptor(SP.wValue, SP.wLength);
                         return;
                 case SET_CONFIGURATION:
-                    /* current_configuration = SP.wValue; */
+                    current_configuration = SP.wValue;
                     break;
                 case GET_CONFIGURATION:
-                    /* data = current_configuration; */
+                    data = current_configuration;
                     data = 1;
                     cnt = 1;
                     break;
-                #if 0
+                #if 1
                 case SET_INTERFACE:
                     /* Without respecting an interface (`wIndex`) */
                     some_interface_altsetting = SP.wValue;
