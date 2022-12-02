@@ -85,7 +85,7 @@
                     .byte   0x24                @; bDescriptorType      = CS_INTERFACE
                     .byte   0x02                @; bDescriptorSubtype   = INPUT_TERMINAL
                     .byte   (1)                 @; bTerminalID
-                    .2byte  0x0201              @; wTerminalType        Mic = 0x0201 or Undefined = 0x0200
+                    .2byte  0x0201              @; wTerminalType        : Mic = 0x0201, undefined = 0x0200
                     .byte   0                   @; bAssocTerminal
                     .byte   1                   @; bNrChannels
                     .2byte  0x00                @; wChannelConfig
@@ -127,7 +127,7 @@
             .byte   0                   @; bNumEndpoints            = No endpoints interface altsetting
             .byte   0x01                @; bInterfaceClass          = AUDIO
             .byte   0x02                @; bInterfaceSubClass       = AUDIO_STREAMING
-            .byte   0                   @; bInterfaceProtocol       Not used. Must be set to 0.
+            .byte   0                   @; bInterfaceProtocol       : Not used, must be set to 0
             .byte   0                   @; iInterface
         IDAS_ALT_SZ = . - interface_descriptor_as_alt
       
@@ -139,7 +139,7 @@
             .byte   1                   @; bNumEndpoints
             .byte   0x01                @; bInterfaceClass          = AUDIO
             .byte   0x02                @; bInterfaceSubClass       = AUDIO_STREAMING
-            .byte   0                   @; bInterfaceProtocol       Not used. Must be set to 0.
+            .byte   0                   @; bInterfaceProtocol       : Not used, must be set to 0
             .byte   0                   @; iInterface
         IDAS_SZ = . - interface_descriptor_as
 
@@ -160,10 +160,10 @@
                 .byte   1                   @; bNrChannels
                 .byte   2                   @; bSubFrameSize        : Bytes
                 .byte   16                  @; bBitResolution       : MSBs
-                .byte   1                   @; bSamFreqType         = One supperted frequency
-                .byte (FREQ) & 0xFF         @;
-                .byte (FREQ >> 8) & 0xFF    @;
-                .byte (FREQ >> 16) & 0xFF   @; tSamFreq
+                .byte   1                   @; bSamFreqType         = One supported frequency
+                .byte   (FREQ) & 0xff       @;
+                .byte   (FREQ>>8) & 0xff    @;
+                .byte   (FREQ>>16) & 0xff   @; tSamFreq
             CSASF_SZ = . - csi_descriptor_as_fmt
 
                 endpoint_descriptor:            /* Standard AS Isochronous Audio Data Endpoint Descriptor */
@@ -210,7 +210,7 @@
 /*************************************************************************************/
 /* String descriptors */
 
-.align 1
+    .align 1
 
     string_descriptor:
         .word  sd0_Lang
