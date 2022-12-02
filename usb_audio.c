@@ -408,24 +408,21 @@
                     get_descriptor(SP.wValue, SP.wLength);
                         return;
                 case SET_CONFIGURATION:
-                    current_configuration = SP.wValue;
+                    /* current_configuration = SP.wValue; */
                     break;
                 case GET_CONFIGURATION:
-                    data = current_configuration;
-                    data = 1;
+                    /* data = current_configuration; */
                     cnt = 1;
                     break;
-                #if 1
                 case SET_INTERFACE:
                     /* Without respecting an interface (`wIndex`) */
-                    some_interface_altsetting = SP.wValue;
+                    /* some_interface_altsetting = SP.wValue; */
                     break;
                 case GET_INTERFACE:
                     /* Without respecting an interface (`wIndex`) */
-                    data = some_interface_altsetting;
+                    /* data = some_interface_altsetting; */
                     cnt = 1;
                     break;
-                #endif
                 default:
                     ep0_set_stat_tx(STALL);
                         return;
