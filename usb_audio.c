@@ -8,8 +8,6 @@
             - 192'000 samples per second
             - true 15 bits per sample
 
-        Developed and tested on Linux.
-
 
         Pins used:
             - PA1   - analog input
@@ -38,7 +36,7 @@
             be like alternating samples of a close to maximum amplitude.
 
 
-        USB device has only one configuration, no interface altsettings,
+        USB device has only one configuration, one interface altsetting,
         no audio controls such as mute or volume.
 
 
@@ -104,7 +102,7 @@
     int32_t
         device_address,
         current_configuration,      /* Currently not used */
-        some_interface_altsetting;  /* Currently not used */
+        interface_1_altsetting;
 
     extern uint16_t
         device_descriptor[],
@@ -412,20 +410,20 @@
                     break;
                 case GET_CONFIGURATION:
                     /* data = current_configuration; */
-                    data = 1;
+                    data = 1;   /* There's only one config #1 */
                     cnt = 1;
                     break;
-                #if 0
                 case SET_INTERFACE:
-                    /* Without respecting an interface (`wIndex`) */
-                    some_interface_altsetting = SP.wValue;
+                    if (SP.wIndex == 1) {
+                        interface_1_altsetting = SP.wValue;
+                    }
                     break;
                 case GET_INTERFACE:
-                    /* Without respecting an interface (`wIndex`) */
-                    data = some_interface_altsetting;
+                    if (SP.wIndex == 1) {
+                        data = interface_1_altsetting;
+                    }
                     cnt = 1;
                     break;
-                #endif
                 default:
                     ep0_set_stat_tx(STALL);
                         return;
