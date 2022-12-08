@@ -122,9 +122,54 @@
 
 
     /*  Interrupt enable/disable (one at a time) */
-        #define INTERRUPT_ENABLE(n)         NVIC->ISER[n/32] = 1 << (n%32)
-        #define INTERRUPT_DISABLE(n)        NVIC->ICER[n/32] = 1 << (n%32)
+        #define INTERRUPT_ENABLE(n)         NVIC->ISER[(n)/32] = 1 << ((n)%32)
+        #define INTERRUPT_DISABLE(n)        NVIC->ICER[(n)/32] = 1 << ((n)%32)
+        #define INTERRUPT_SET_PENDING(n)    NVIC->ISPR[(n)/32] = 1 << ((n)%32)
+        #define INTERRUPT_CLEAR_PENDING(n)  NVIC->ICPR[(n)/32] = 1 << ((n)%32)
         #define INTERRUPT_PRIORITY(n, p)    NVIC->IP[n] = (p) << 4
+
+
+    /*  Software interrupts
+            `n` - softint consecutive number, must start with 0
+
+        Example:
+            #define IRQ_MySoftInt   0
+
+            void my_softint_handler(void);
+            SOFTINT_VECTOR(IRQ_MySoftInt, my_softint_handler);
+            ...
+                SOFTINT_ENABLE(IRQ_MySoftInt);
+                ...
+                SOFTINT_SET_PENDING(IRQ_MySoftInt); */
+
+        #define SOFTINT_VECTOR(vn, fname)   VECTOR(IRQ_Soft(vn), fname)
+
+        /* `SORT_BY_NAME` must be used in a linker script */
+        #define IRQ_Soft(n)             IRQ_Soft_##n
+
+        #define _IRQ_Soft_Num               43
+
+        #define SOFTINT_ENABLE(n)           INTERRUPT_ENABLE((n) + _IRQ_Soft_Num)
+        #define SOFTINT_DISABLE(n)          INTERRUPT_DISABLE((n) + _IRQ_Soft_Num)
+        #define SOFTINT_SET_PENDING(n)      INTERRUPT_SET_PENDING((n) + _IRQ_Soft_Num)
+        #define SOFTINT_CLEAR_PENDING(n)    INTERRUPT_CLEAR_PENDING((n) + _IRQ_Soft_Num)
+        #define SOFTINT_PRIORITY(n)         INTERRUPT_PRIORITY((n) + _IRQ_Soft_Num, p)
+
+
+    /* Data segment break is stored at `CoreDebug->DCRDR` */
+
+        #define BRKR        (*(volatile uint32_t*)&CoreDebug->DCRDR)
+
+        void* sbrk(uint32_t n) {
+            uint32_t
+               *b = (uint32_t*)&BRKR,
+                t;
+
+            t = *b;
+           *b += n;
+
+            return (void*)t;
+        }
 
 
     /*  Startup code and reset vector initialization
@@ -165,6 +210,8 @@
                 }
 
                 SCB->VTOR = (uint32_t)&_sivt;
+
+                BRKR = (uint32_t)&_ebss;
 
                 /* main(); */
                 asm("b _start");
@@ -258,14 +305,19 @@
 
         Possible `MHz` values are:
             for HSI2 and HSE2:
-                8,12,16,20,24,28,32,36,40,44,48,52,56,60,64
+                12, 16,20,24,28,32,36,40,44,48,52,56,60,64
+                (8 — not guaranteed)
             for HSE:
-                     16,   24,   32,   40,   48,   56,   64,   72
+                    16,   24,   32,   40,   48,   56,   64,   72
                 (80,88,96,104,112,120,128 - not guaranteed)
 
-        Example:
+        Example 1:
             #define F_CPU_MHz 72
-            CONFIGURE_PLL(HSE, F_CPU_MHz); */
+            CONFIGURE_PLL(HSE, F_CPU_MHz);
+
+        Example 2:
+            #define F_CPU_MHz 8
+            SW_EXTERNAL_8MHZ(); */
 
         #define CONFIGURE_PLL(src, MHz) do {                            \
             FLASH->ACR = 0x10 | (MHz <= 24 ? 0 : (MHz <= 48 ? 1 : 2));  \
@@ -275,6 +327,10 @@
             RCC->CR    = PLLON | (src==HSI2 ? HSION : HSEON);           \
             while (!(BB_PLLRDY));                                       \
             RCC->CFGR  = PLL | (MHz > 36 ? RCC_CFGR_PPRE1_DIV2 : 0);    \
+        } while(0)
+
+        #define SW_EXTERNAL_8MHZ() do {                                 \
+            RCC->CR = HSEON; while (!BB_HSERDY); RCC->CFGR = HSE;       \
         } while(0)
 
             /* PLL sources, (PLLXTPRE | PLLSRC) */
