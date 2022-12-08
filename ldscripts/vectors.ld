@@ -3,7 +3,7 @@
 
     Every `.isr_vector.__vec*` input section, if defined,
     goes to a specific offset from start of a vector table.
-    This saves some space if some of interrupts are not used.
+    This saves space if some of interrupts are not used.
 
     Size of an input section must be equal to 4 bytes.
     Input section names are unique.
@@ -80,6 +80,10 @@
     . = DEFINED(__vec_40) ? (_sivt + 0xe0) : . ;  KEEP(*(.isr_vector.__vec_40))
     . = DEFINED(__vec_41) ? (_sivt + 0xe4) : . ;  KEEP(*(.isr_vector.__vec_41))
     . = DEFINED(__vec_42) ? (_sivt + 0xe8) : . ;  KEEP(*(.isr_vector.__vec_42))
+}
+
+.isr_vector.soft : {
+    . = DEFINED(__vec_IRQ_Soft_0) ? (_sivt + 0xec) : . ;  KEEP(*(SORT_BY_NAME(.isr_vector.__vec_IRQ_Soft*)))
 }
 
 /* end. */
