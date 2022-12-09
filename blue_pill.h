@@ -153,7 +153,7 @@
         #define SOFTINT_DISABLE(n)          INTERRUPT_DISABLE((n) + _IRQ_Soft_Num)
         #define SOFTINT_SET_PENDING(n)      INTERRUPT_SET_PENDING((n) + _IRQ_Soft_Num)
         #define SOFTINT_CLEAR_PENDING(n)    INTERRUPT_CLEAR_PENDING((n) + _IRQ_Soft_Num)
-        #define SOFTINT_PRIORITY(n)         INTERRUPT_PRIORITY((n) + _IRQ_Soft_Num, p)
+        #define SOFTINT_PRIORITY(n, p)      INTERRUPT_PRIORITY((n) + _IRQ_Soft_Num, p)
 
 
     /* Data segment break is stored at `CoreDebug->DCRDR` */
